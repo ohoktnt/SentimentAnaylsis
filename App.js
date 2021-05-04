@@ -1,16 +1,52 @@
 import React, {Component} from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
 import {Button, Input} from 'react-native-elements';
+import axios from 'axios';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       input: null,
+      loading: true,
+      output: null,
+      probability: null,
     };
   }
 
+  goForAxios = () => {
+    const {input} = this.state;
+
+    axios
+      .request({
+        method: 'POST',
+        url: 'https://sentiment-analysis4.p.rapidapi.com/reviews',
+        headers: {
+          'content-type': 'application/json',
+          'x-rapidapi-key':
+            '34986c28e0mshc68992223a227ffp13653ejsna014a46c3df3',
+          'x-rapidapi-host': 'sentiment-analysis4.p.rapidapi.com',
+        },
+        data: {
+          text: input,
+        },
+      })
+      .then(response => {
+        console.log(response.data);
+        this.setState({
+          loading: false,
+          output: response.data.label,
+          probability: response.data.scope,
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
   render() {
+    const {loading, probability, output} = this.state;
+
     return (
       <View style={styles.container}>
         <View style={styles.titleContainer}>
@@ -25,8 +61,16 @@ export default class App extends Component {
             <Button
               title="Find Sentiment"
               buttonStyle={styles.button}
-              titleStyle={{fontSize: 20}}></Button>
+              titleStyle={{fontSize: 20}}
+              onPress={this.goForAxios}></Button>
           </View>
+          {loading ? (
+            <Text></Text>
+          ) : (
+            <View style={styles.output}>
+              <Text style={{fontSize: 18}}>{output + ' - ' + probability}</Text>
+            </View>
+          )}
           <View style={styles.imageContainer}>
             <Image
               source={require('./assets/drama.png')}
@@ -76,4 +120,8 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
   },
+  output: {
+    fontSize: 29,
+    alignItems: 'center',
+  }
 });
